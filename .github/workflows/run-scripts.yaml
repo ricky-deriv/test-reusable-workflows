@@ -17,4 +17,4 @@ jobs:
     - name: 'print env vars'
       run: |
         echo "printing an env var"
-        echo "$NAME"
+        echo "name: ${{ vars.NAME }}"
