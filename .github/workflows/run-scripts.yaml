@@ -19,7 +19,7 @@ jobs:
         echo "printing an env var"
         echo "name: ${{ vars.NAME }}"
   run-scripts:
-    depends: env-vars
+    needs: env-vars
     name: "run local scripts"
     runs-on: ubuntu-latest
     steps:
