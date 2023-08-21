@@ -1,0 +1,23 @@
+name: 'Run Scripts'
+
+on: 
+  pull_request:
+    paths:
+      - aws/**
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  run-bash:
+    name: "run stuff"
+    runs-on: ubuntu-latest
+    steps:
+    - name: 'run stuff'
+      run: |
+        echo "ehelo"
+        echo "my name is hha"
+        echo "tip of the day is no tip"
+        echo "bye..."
+
