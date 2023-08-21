@@ -26,10 +26,8 @@ jobs:
     - uses: actions/checkout@v3
     - name: 'run scripts'
       run: | 
-        ls aws
         for script in aws/*.sh; do
           echo "Running script: $script"
-          echo bash "$script"
           bash "$script"
         done
         echo "end"
