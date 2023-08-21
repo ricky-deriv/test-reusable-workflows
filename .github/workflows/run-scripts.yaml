@@ -28,11 +28,9 @@ jobs:
       run: | 
         ls aws
         for script in aws/*.sh; do
-          if [ -f "$script" ] && [ -x "$script" ]; then
-            echo "Running script: $script"
-            echo bash "$script"
-            bash "$script"
-          fi
+          echo "Running script: $script"
+          echo bash "$script"
+          bash "$script"
         done
         echo "end"
 
