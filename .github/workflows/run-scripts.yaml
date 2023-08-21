@@ -19,15 +19,18 @@ jobs:
         echo "printing an env var"
         echo "name: ${{ vars.NAME }}"
   run-scripts:
+    depends: env-vars
     name: "run local scripts"
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
     - name: 'run scripts'
       run: | 
+        ls aws
         for script in aws/*.sh; do
           if [ -f "$script" ] && [ -x "$script" ]; then
             echo "Running script: $script"
+            echo bash "$script"
             bash "$script"
           fi
         done
