@@ -9,7 +9,7 @@ defaults:
     shell: bash
 
 env:
-  BUCKET_NAME: test-bucket-1652-iac
+  BUCKET_NAME: test-bucket-1652-iac-01
 
 jobs:
   dirs:
