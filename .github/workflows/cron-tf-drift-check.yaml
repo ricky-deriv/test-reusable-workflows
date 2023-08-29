@@ -1,8 +1,8 @@
 name: 'Cron Terraform Drift Check'
 
 on: 
-  schedule:
-    - cron: '*/10 * * * *'
+  # schedule:
+  #   - cron: '*/10 * * * *'
   
 defaults:
   run:
