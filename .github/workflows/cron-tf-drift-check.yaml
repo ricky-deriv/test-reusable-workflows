@@ -1,0 +1,80 @@
+name: 'Cron Terraform Drift Check'
+
+on: 
+  schedule:
+    - cron: '*/10 * * * *'
+  
+defaults:
+  run:
+    shell: bash
+
+env:
+  BUCKET_NAME: test-bucket-1652-iac
+
+jobs:
+  dirs:
+    name: "Get tf directories"
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: action/checkout@v3
+      - id: set-matrix
+        run: |
+          X=()
+          while read -r d; do
+            d="${d#/}"
+            X+=("{dir: \"$d\", artifact: \"$(echo $d | tr '/' ' ')\"}")
+          done < <(find aws -type d -exec test -e "{}/terraform.tf" \; -print)
+          echo matrix="$(jq -Mc -n '{"dir":$ARGS.positional}' --args "${X[@]}")" >>$GITHUB_OUTPUT
+  
+  terraform:
+    needs: dirs
+    name: "Identify drifts"
+    runs-on: ubuntu-latest
+    strategy: 
+      fail-fast: false
+      matrix: ${{ fromJson(needs.dirs.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
+      - name: Terraform Check Drift
+        working-directory: ${{ fromJson(matrix.dir).dir }}
+        run: | 
+          cat << EOF > backend.tf
+          terraform {
+            backend "s3" {
+              bucket = "$BUCKET_NAME"
+              key    = "${{ fromJson(matrix.dir).dir }}/terraform.tfstate"
+              region = "us-east-1"
+            }
+          }
+          EOF
+          terraform init -no-color
+
+          terraform fmt
+          terraform validate 2> tfplan-error
+          terraform plan -no-color -out apply.plan >tfplan-output 2> tfplan-error
+          cat tfplan-error
+          cat tfplan-output
+          if grep -q "No changes. Your infrastructure matches the configuration." tfplan-output; then
+            echo "Found: No changes. Your infrastructure matches the configuration."
+          else
+            echo "Not found: No changes. Your infrastructure matches the configuration."
+            echo "drift detected ;_;" >> tfplan-error
+            exit 1
+          fi
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_READONLY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_READONLY }}
+      - name: upload artifacts
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: ${{ fromJson(matrix.dir).artifact }}-tfplan_result
+          path: |
+            ${{ fromJson(matrix.dir).dir }}/tfplan-error
+            ${{ fromJson(matrix.dir).dir }}/tfplan-output
+          retention-days: 2
