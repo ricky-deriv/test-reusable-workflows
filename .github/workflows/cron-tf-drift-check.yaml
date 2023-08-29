@@ -18,9 +18,7 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - uses: action/checkout@v3
-        with:
-          repository: ricky-deriv/test-workflows
+      - uses: actions/checkout@v3
       - id: set-matrix
         run: |
           X=()
